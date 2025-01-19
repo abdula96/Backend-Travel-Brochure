@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const path = require("path");
 const favicon = require("serve-favicon");
+const cors = require("cors");
 const placeRoutes = require("./routes/PlaceRoutes.js");
 
 dotenv.config();
@@ -15,8 +16,11 @@ app.use(favicon(path.join(__dirname, "public", "favicon.ico")));
 // Middleware to serve static files
 app.use(express.static(path.join(__dirname, "public")));
 
-// Middleware
+// Middleware to parse JSON
 app.use(express.json());
+
+// Enable CORS
+app.use(cors());
 
 // Routes
 app.use("/api/places", placeRoutes);
