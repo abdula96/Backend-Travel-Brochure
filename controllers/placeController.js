@@ -1,4 +1,17 @@
 const Place = require("../models/Place");
+const multer = require("multer");
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/");
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + "-" + file.originalname);
+  },
+});
+
+const upload = multer({ storage: storage });
 
 // Get all places
 const getPlaces = async (req, res) => {
@@ -32,7 +45,8 @@ const getPlaceById = async (req, res) => {
 // Create a new place
 const createPlace = async (req, res) => {
   try {
-    const { name, location, description, image } = req.body;
+    const { name, city, country, description } = req.body;
+    const image = req.file ? req.file.path : null;
 
     // Validate required fields
     if (!name || !description) {
@@ -43,7 +57,7 @@ const createPlace = async (req, res) => {
 
     const newPlace = new Place({
       name,
-      location,
+      location: { city, country },
       description,
       image,
     });
@@ -100,4 +114,5 @@ module.exports = {
   createPlace,
   updatePlace,
   deletePlace,
+  upload,
 };

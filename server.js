@@ -16,6 +16,9 @@ app.use(favicon(path.join(__dirname, "public", "favicon.ico")));
 // Middleware to serve static files
 app.use(express.static(path.join(__dirname, "public")));
 
+// Serve static files from the uploads directory
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
 // Middleware to parse JSON
 app.use(express.json());
 

@@ -5,6 +5,7 @@ const {
   createPlace,
   updatePlace,
   deletePlace,
+  upload,
 } = require("../controllers/placeController");
 
 const router = express.Router();
@@ -16,10 +17,10 @@ router.get("/", getPlaces);
 router.get("/:id", getPlaceById);
 
 // Create a new place
-router.post("/", createPlace);
+router.post("/", upload.single("image"), createPlace); // Use upload middleware
 
 // Update a place by ID
-router.put("/:id", updatePlace);
+router.put("/:id", upload.single("image"), updatePlace); // Use upload middleware
 
 // Delete a place by ID
 router.delete("/:id", deletePlace);
