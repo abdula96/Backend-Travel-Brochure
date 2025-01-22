@@ -1,3 +1,4 @@
+// server.js
 const express = require("express");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
@@ -5,6 +6,8 @@ const path = require("path");
 const favicon = require("serve-favicon");
 const cors = require("cors");
 const placeRoutes = require("./routes/PlaceRoutes.js");
+const authRoutes = require("./routes/authRoutes.js"); // Import authentication routes
+const { protect } = require("./middleware/authMiddleware.js"); // Import protect middleware
 
 dotenv.config();
 
@@ -27,6 +30,12 @@ app.use(cors());
 
 // Routes
 app.use("/api/places", placeRoutes);
+app.use("/api/auth", authRoutes); // Add authentication routes
+
+// Protected route example (use protect middleware)
+app.get("/api/user", protect, (req, res) => {
+  res.json(req.user);
+});
 
 // Add a root route
 app.get("/", (req, res) => {

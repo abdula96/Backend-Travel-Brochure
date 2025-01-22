@@ -4,10 +4,18 @@ const multer = require("multer");
 // Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads/");
+    try {
+      cb(null, "uploads/");
+    } catch (error) {
+      cb(error);
+    }
   },
   filename: (req, file, cb) => {
-    cb(null, Date.now() + "-" + file.originalname);
+    try {
+      cb(null, Date.now() + "-" + file.originalname);
+    } catch (error) {
+      cb(error);
+    }
   },
 });
 
@@ -60,12 +68,14 @@ const createPlace = async (req, res) => {
       location: { city, country },
       description,
       image,
+      user: req.user._id, // Associate the place with the user ID
     });
 
     await newPlace.save(); // Save the new place to MongoDB
     res.status(201).json(newPlace); // Send the created place as JSON
   } catch (error) {
-    console.error("Error creating place:", error.message);
+    console.error("Error creating place:", error); // Log the full error
+    console.error(error.stack); // Log the error stack for detailed insight
     res
       .status(500)
       .json({ message: "Failed to create place. Please try again later." });
@@ -76,12 +86,24 @@ const createPlace = async (req, res) => {
 const updatePlace = async (req, res) => {
   try {
     const { id } = req.params;
-    const updatedPlace = await Place.findByIdAndUpdate(id, req.body, {
-      new: true,
-    }); // Update place by ID
-    if (!updatedPlace) {
+    const place = await Place.findById(id);
+
+    if (!place) {
       return res.status(404).json({ message: "Place not found" });
     }
+
+    if (place.user.toString() !== req.user._id.toString()) {
+      return res
+        .status(403)
+        .json({ message: "Not authorized to update this place" });
+    }
+
+    Object.assign(place, req.body);
+    if (req.file) {
+      place.image = req.file.path;
+    }
+    const updatedPlace = await place.save();
+
     res.status(200).json(updatedPlace);
   } catch (error) {
     console.error("Error updating place:", error.message);
@@ -95,10 +117,19 @@ const updatePlace = async (req, res) => {
 const deletePlace = async (req, res) => {
   try {
     const { id } = req.params;
-    const deletedPlace = await Place.findByIdAndDelete(id); // Delete place by ID
-    if (!deletedPlace) {
+    const place = await Place.findById(id);
+
+    if (!place) {
       return res.status(404).json({ message: "Place not found" });
     }
+
+    if (place.user.toString() !== req.user._id.toString()) {
+      return res
+        .status(403)
+        .json({ message: "Not authorized to delete this place" });
+    }
+
+    await place.remove();
     res.status(200).json({ message: "Place deleted successfully." });
   } catch (error) {
     console.error("Error deleting place:", error.message);
